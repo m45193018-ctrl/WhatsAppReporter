@@ -37,6 +37,16 @@ jobs:
           mkdir -p extracted
           unzip -q WhatsAppReporter-Android-Project.zip -d extracted
           test -f extracted/WhatsAppReporter/settings.gradle.kts
+          test -f extracted/WhatsAppReporter/app/build.gradle.kts
+
+      - name: Align Kotlin JVM target
+        run: |
+          cat >> extracted/WhatsAppReporter/app/build.gradle.kts <<'EOF'
+
+          tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+              kotlinOptions.jvmTarget = "1.8"
+          }
+          EOF
 
       - name: Build APK
         run: |
@@ -49,10 +59,4 @@ jobs:
           name: WhatsAppReporter-APK
           path: extracted/WhatsAppReporter/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
-                - name: Align Kotlin JVM target
-        run: |
-          cat >> extracted/WhatsAppReporter/app/build.gradle.kts <<'EOF'
-          tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
-              kotlinOptions.jvmTarget = "1.8"
-          }
-          EOF
+          
