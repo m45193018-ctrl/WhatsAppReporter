@@ -1,5 +1,4 @@
-
-name: Build WhatsApp Reporter APK
+name: Build WhatsApp Reporter APk
 
 on:
   workflow_dispatch:
@@ -15,7 +14,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Java 17
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -24,7 +23,7 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Install Android SDK packages
+      - name: Install Android SDK
         run: |
           sdkmanager "platforms;android-35" "build-tools;35.0.0"
 
@@ -33,42 +32,20 @@ jobs:
         with:
           gradle-version: '8.9'
 
-      - name: Extract project ZIP
+      - name: Extract project
         run: |
           mkdir -p extracted
-
-          ZIP_FILE=$(find . -maxdepth 1 -type f -iname '*.zip' | head -n 1)
-
-          if [ -z "$ZIP_FILE" ]; then
-            echo "ERROR: ZIP file not found"
-            ls -la
-            exit 1
-          fi
-
-          echo "Found project: $ZIP_FILE"
-          unzip -q "$ZIP_FILE" -d extracted
-
-      - name: Locate Android project
-        run: |
-          PROJECT_DIR=$(find extracted -name settings.gradle.kts -printf '%h\n' | head -n 1)
-
-          if [ -z "$PROJECT_DIR" ]; then
-            echo "ERROR: Android project not found"
-            find extracted -maxdepth 4 -type f
-            exit 1
-          fi
-
-          echo "PROJECT_DIR=$PROJECT_DIR" >> $GITHUB_ENV
+          unzip -q WhatsAppReporter-Android-Project.zip -d extracted
 
       - name: Build APK
         run: |
-          cd "$PROJECT_DIR"
+          cd extracted/WhatsAppReporter
           gradle --no-daemon assembleDebug
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
         with:
           name: WhatsAppReporter-APK
-          path: ${{ env.PROJECT_DIR }}/app/build/outputs/apk/debug/*.apk
+          path: extracted/WhatsAppReporter/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
           
